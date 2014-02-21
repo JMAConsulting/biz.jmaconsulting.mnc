@@ -169,3 +169,23 @@ function mnc_getConstants() {
     ),
   );
 }
+
+
+function mnc_civicrm_validate($formName, &$fields, &$files, &$form) {
+  if ($formName == 'CRM_Event_Form_Registration_Register'
+    && $form->_values['event']['event_type_id'] == EVENT_TYPE_ID) {
+    
+    if (CRM_Utils_Array::value('price_' . FOURSOME_FIELD_ID, $fields) == FOURSOME_FIELD_VALUE) {
+      $errors = array();
+      $contants = mnc_getConstants();
+      foreach ($contants as $key => $customFields) {
+        foreach ($customFields as $customFieldId) {
+          if (empty($fields['custom_' . $customFieldId])) {
+            $errors['custom_' . $customFieldId] = $form->_fields['custom_' . $customFieldId]['title'] . ts(' is required.');
+          }
+        }
+      }
+      return $errors;
+    }
+  }
+}
