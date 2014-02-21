@@ -78,13 +78,23 @@ function mnc_civicrm_managed(&$entities) {
 function mnc_civicrm_buildForm($formName, &$form) {
   if (substr($formName, 0, 27) == 'CRM_Event_Form_Registration' 
     && $form->_values['event']['event_type_id'] == EVENT_TYPE_ID) {
-    $contants = mnc_getConstants();
-    $form->assign('playerProfileID', PLAYER_PROFILE_ID);
-     CRM_Core_Region::instance('page-body')->add(array(
+    if ($formName == 'CRM_Event_Form_Registration_Register') {
+      $contants = mnc_getConstants();
+      $form->assign('playerProfileID', PLAYER_PROFILE_ID);
+      CRM_Core_Region::instance('page-body')->add(array(
         'template' => 'CRM/Extra.tpl',
       ));
-    $form->assign('foursome', array('field' => 'price_' . FOURSOME_FIELD_ID,
-      'value' => FOURSOME_FIELD_VALUE));
+      $form->assign('foursome', array('field' => 'price_' . FOURSOME_FIELD_ID,
+        'value' => FOURSOME_FIELD_VALUE));
+    }
+    else {
+      $formValues = $form->getVar('_params');
+      $formValues = $formValues[0];
+      if (!empty($formValues['price_' . FOURSOME_FIELD_ID]) && !CRM_Utils_Array::value(FOURSOME_FIELD_VALUE, $formValues['price_' . FOURSOME_FIELD_ID])) {
+        $customPost = & CRM_Core_Smarty::singleton()->get_template_vars('primaryParticipantProfile');
+        unset($customPost['CustomPost'][22]);
+      }
+    }
   }
 }
 
