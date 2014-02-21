@@ -94,7 +94,6 @@ function mnc_civicrm_postProcess($formName, &$form) {
     $contants = mnc_getConstants();
     if ($formName == 'CRM_Event_Form_Registration_Confirm') {
       $formValues = $form->getVar('_params');
-      
       // create player participant
       if (!empty($formValues['price_' . FOURSOME_FIELD_ID]) && CRM_Utils_Array::value(FOURSOME_FIELD_VALUE, $formValues['price_' . FOURSOME_FIELD_ID])) {
         foreach ($contants as $key => $customFields) {
@@ -104,18 +103,24 @@ function mnc_civicrm_postProcess($formName, &$form) {
             
             // create/check contact
             //check dupe
-            if (1) {
-              $params = array(
-                'last_name' => $formValues['custom_' . $customFields['last_name']],
-                'first_name' => $formValues['custom_' . $customFields['first_name']],
+            $params = array(
+              'last_name' => $formValues['custom_' . $customFields['last_name']],
+              'first_name' => $formValues['custom_' . $customFields['first_name']],
+              'email' => $formValues['custom_' . $customFields['email']],
+            );
+            $dedupeParams = CRM_Dedupe_Finder::formatParams($params, 'Individual');
+            $dupes = CRM_Dedupe_Finder::dupesByParams($dedupeParams, 'Individual', 'Unsupervised');
+            if (empty($dupes)) {
+              $params += array(
                 'contact_type' => 'Individual',
-                'email' => $formValues['custom_' . $customFields['email']],
                 'version' => 3,
               );
               $result = civicrm_api('Contact', 'create', $params);
               $contactId = $result['id'];
             }
-            
+            else {
+              $contactId = current($dupes);
+            }
             if (!$contactId) {
               continue;
             }
