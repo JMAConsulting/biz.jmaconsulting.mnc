@@ -4,7 +4,7 @@ require_once 'mnc.civix.php';
 
 define('EVENT_TYPE_ID', 7);
 define('PLAYER_PROFILE_ID', 13);
-define('FOURSOME_FIELD_ID', 4);
+define('FOURSOME_FIELD_ID', 5);
 define('FOURSOME_FIELD_VALUE', 8);
 
 
