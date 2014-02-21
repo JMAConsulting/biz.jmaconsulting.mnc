@@ -90,6 +90,12 @@ function mnc_civicrm_buildForm($formName, &$form) {
     else {
       $formValues = $form->getVar('_params');
       $formValues = $formValues[0];
+      
+      $foreSome = FALSE;
+      if (!CRM_Utils_Array::value(4, $formValues['price_' . FOURSOME_FIELD_ID])) {
+        $foreSome = TRUE;        
+      }
+      CRM_Core_Smarty::singleton()->assign('foresome', $foreSome);
       if (!empty($formValues['price_' . FOURSOME_FIELD_ID]) && !CRM_Utils_Array::value(FOURSOME_FIELD_VALUE, $formValues['price_' . FOURSOME_FIELD_ID])) {
         $customPost = & CRM_Core_Smarty::singleton()->get_template_vars('primaryParticipantProfile');
         unset($customPost['CustomPost'][22]);
