@@ -2,10 +2,10 @@
 
 require_once 'mnc.civix.php';
 
-define('EVENT_TYPE_ID', 4);
-define('PLAYER_PROFILE_ID', 22);
-define('FOURSOME_FIELD_ID', 2);
-define('FOURSOME_FIELD_VALUE', 3);
+define('EVENT_TYPE_ID', 7);
+define('PLAYER_PROFILE_ID', 13);
+define('FOURSOME_FIELD_ID', 4);
+define('FOURSOME_FIELD_VALUE', 8);
 
 
 /**
@@ -140,27 +140,27 @@ function mnc_civicrm_postProcess($formName, &$form) {
 
 
 function mnc_getConstants() {
-  
+  //FIXME: remove hardcoded values, use machine names
   return array(
     'player_1' => array(
       'first_name' => 1,
-      'last_name' => 1,
-      'email' => 24,
+      'last_name' => 2,
+      'email' => 3,
     ), 
     'player_2' => array(
-      'first_name' => 1,
-      'last_name' => 1,
-      'email' => 25,
+      'first_name' => 4,
+      'last_name' => 5,
+      'email' => 6,
     ),
     'player_3' => array(
-      'first_name' => 1,
-      'last_name' => 1,
-      'email' => 26,
+      'first_name' => 7,
+      'last_name' => 8,
+      'email' => 9,
     ),
     'player_4' => array(
-      'first_name' => 1,
-      'last_name' => 1,
-      'email' => 27,
+      'first_name' => 10,
+      'last_name' => 11,
+      'email' => 12,
     ),
   );
 }
