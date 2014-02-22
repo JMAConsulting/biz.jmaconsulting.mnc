@@ -6,6 +6,8 @@ define('EVENT_TYPE_ID', 7);
 define('PLAYER_PROFILE_ID', 13);
 define('FOURSOME_FIELD_ID', 5);
 define('FOURSOME_FIELD_VALUE', 11);
+define('MSG_TEMPALTE_ID', 58);
+define('MSG_LUNCH_VALUE', 14);
 
 
 /**
@@ -92,13 +94,13 @@ function mnc_civicrm_buildForm($formName, &$form) {
       $formValues = $formValues[0];
       
       $foreSome = FALSE;
-      if (!CRM_Utils_Array::value(4, $formValues['price_' . FOURSOME_FIELD_ID])) {
+      if (!CRM_Utils_Array::value(MSG_LUNCH_VALUE, $formValues['price_' . FOURSOME_FIELD_ID])) {
         $foreSome = TRUE;        
       }
       CRM_Core_Smarty::singleton()->assign('foresome', $foreSome);
       if (!empty($formValues['price_' . FOURSOME_FIELD_ID]) && !CRM_Utils_Array::value(FOURSOME_FIELD_VALUE, $formValues['price_' . FOURSOME_FIELD_ID])) {
         $customPost = & CRM_Core_Smarty::singleton()->get_template_vars('primaryParticipantProfile');
-        unset($customPost['CustomPost'][22]);
+        unset($customPost['CustomPost'][PLAYER_PROFILE_ID]);
       }
     }
   }
@@ -163,11 +165,6 @@ function mnc_civicrm_postProcess($formName, &$form) {
 function mnc_getConstants() {
   //FIXME: remove hardcoded values, use machine names
   return array(
-    'player_1' => array(
-      'first_name' => 1,
-      'last_name' => 2,
-      'email' => 3,
-    ), 
     'player_2' => array(
       'first_name' => 4,
       'last_name' => 5,
