@@ -5,7 +5,7 @@ require_once 'mnc.civix.php';
 define('EVENT_TYPE_ID', 7);
 define('PLAYER_PROFILE_ID', 13);
 define('FOURSOME_FIELD_ID', 5);
-define('FOURSOME_FIELD_VALUE', 8);
+define('FOURSOME_FIELD_VALUE', 11);
 
 
 /**
@@ -78,13 +78,29 @@ function mnc_civicrm_managed(&$entities) {
 function mnc_civicrm_buildForm($formName, &$form) {
   if (substr($formName, 0, 27) == 'CRM_Event_Form_Registration' 
     && $form->_values['event']['event_type_id'] == EVENT_TYPE_ID) {
-    $contants = mnc_getConstants();
-    $form->assign('playerProfileID', PLAYER_PROFILE_ID);
-     CRM_Core_Region::instance('page-body')->add(array(
+    if ($formName == 'CRM_Event_Form_Registration_Register') {
+      $contants = mnc_getConstants();
+      $form->assign('playerProfileID', PLAYER_PROFILE_ID);
+      CRM_Core_Region::instance('page-body')->add(array(
         'template' => 'CRM/Extra.tpl',
       ));
-    $form->assign('foursome', array('field' => 'price_' . FOURSOME_FIELD_ID,
-      'value' => FOURSOME_FIELD_VALUE));
+      $form->assign('foursome', array('field' => 'price_' . FOURSOME_FIELD_ID,
+        'value' => FOURSOME_FIELD_VALUE));
+    }
+    else {
+      $formValues = $form->getVar('_params');
+      $formValues = $formValues[0];
+      
+      $foreSome = FALSE;
+      if (!CRM_Utils_Array::value(4, $formValues['price_' . FOURSOME_FIELD_ID])) {
+        $foreSome = TRUE;        
+      }
+      CRM_Core_Smarty::singleton()->assign('foresome', $foreSome);
+      if (!empty($formValues['price_' . FOURSOME_FIELD_ID]) && !CRM_Utils_Array::value(FOURSOME_FIELD_VALUE, $formValues['price_' . FOURSOME_FIELD_ID])) {
+        $customPost = & CRM_Core_Smarty::singleton()->get_template_vars('primaryParticipantProfile');
+        unset($customPost['CustomPost'][22]);
+      }
+    }
   }
 }
 
@@ -94,7 +110,6 @@ function mnc_civicrm_postProcess($formName, &$form) {
     $contants = mnc_getConstants();
     if ($formName == 'CRM_Event_Form_Registration_Confirm') {
       $formValues = $form->getVar('_params');
-      
       // create player participant
       if (!empty($formValues['price_' . FOURSOME_FIELD_ID]) && CRM_Utils_Array::value(FOURSOME_FIELD_VALUE, $formValues['price_' . FOURSOME_FIELD_ID])) {
         foreach ($contants as $key => $customFields) {
@@ -104,18 +119,24 @@ function mnc_civicrm_postProcess($formName, &$form) {
             
             // create/check contact
             //check dupe
-            if (1) {
-              $params = array(
-                'last_name' => $formValues['custom_' . $customFields['last_name']],
-                'first_name' => $formValues['custom_' . $customFields['first_name']],
+            $params = array(
+              'last_name' => $formValues['custom_' . $customFields['last_name']],
+              'first_name' => $formValues['custom_' . $customFields['first_name']],
+              'email' => $formValues['custom_' . $customFields['email']],
+            );
+            $dedupeParams = CRM_Dedupe_Finder::formatParams($params, 'Individual');
+            $dupes = CRM_Dedupe_Finder::dupesByParams($dedupeParams, 'Individual', 'Unsupervised');
+            if (empty($dupes)) {
+              $params += array(
                 'contact_type' => 'Individual',
-                'email' => $formValues['custom_' . $customFields['email']],
                 'version' => 3,
               );
               $result = civicrm_api('Contact', 'create', $params);
               $contactId = $result['id'];
             }
-            
+            else {
+              $contactId = current($dupes);
+            }
             if (!$contactId) {
               continue;
             }
@@ -163,4 +184,23 @@ function mnc_getConstants() {
       'email' => 12,
     ),
   );
+}
+
+function mnc_civicrm_validate($formName, &$fields, &$files, &$form) {
+  if ($formName == 'CRM_Event_Form_Registration_Register'
+    && $form->_values['event']['event_type_id'] == EVENT_TYPE_ID) {
+    
+    if (CRM_Utils_Array::value('price_' . FOURSOME_FIELD_ID, $fields) == FOURSOME_FIELD_VALUE) {
+      $errors = array();
+      $contants = mnc_getConstants();
+      foreach ($contants as $key => $customFields) {
+        foreach ($customFields as $customFieldId) {
+          if (empty($fields['custom_' . $customFieldId])) {
+            $errors['custom_' . $customFieldId] = $form->_fields['custom_' . $customFieldId]['title'] . ts(' is required.');
+          }
+        }
+      }
+      return $errors;
+    }
+  }
 }
