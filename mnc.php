@@ -107,54 +107,62 @@ function mnc_civicrm_buildForm($formName, &$form) {
 }
 
 function mnc_civicrm_postProcess($formName, &$form) {
-  if (substr($formName, 0, 27) == 'CRM_Event_Form_Registration' 
-      && $form->_values['event']['event_type_id'] == EVENT_TYPE_ID) {
+  if (($formName == 'CRM_Event_Form_Registration_Confirm' 
+    && $form->_values['event']['event_type_id'] == EVENT_TYPE_ID)
+    || ($formName == 'CRM_Event_Form_Participant' 
+    && $form->getVar('_eventTypeId') == EVENT_TYPE_ID && $form->_action & CRM_Core_Action::ADD)) {
     $contants = mnc_getConstants();
-    if ($formName == 'CRM_Event_Form_Registration_Confirm') {
-      $formValues = $form->getVar('_params');
-      // create player participant
-      if (!empty($formValues['price_' . FOURSOME_FIELD_ID]) && CRM_Utils_Array::value(FOURSOME_FIELD_VALUE, $formValues['price_' . FOURSOME_FIELD_ID])) {
-        foreach ($contants as $key => $customFields) {
-          if (!empty($formValues['custom_' . $customFields['first_name']]) 
-            || !empty($formValues['custom_' . $customFields['last_name']]) 
-            || !empty($formValues['custom_' . $customFields['email']])) {
-            
-            // create/check contact
-            //check dupe
-            $params = array(
-              'last_name' => $formValues['custom_' . $customFields['last_name']],
-              'first_name' => $formValues['custom_' . $customFields['first_name']],
-              'email' => $formValues['custom_' . $customFields['email']],
-            );
-            $dedupeParams = CRM_Dedupe_Finder::formatParams($params, 'Individual');
-            $dupes = CRM_Dedupe_Finder::dupesByParams($dedupeParams, 'Individual', 'Unsupervised');
-            if (empty($dupes)) {
-              $params += array(
-                'contact_type' => 'Individual',
-                'version' => 3,
-              );
-              $result = civicrm_api('Contact', 'create', $params);
-              $contactId = $result['id'];
-            }
-            else {
-              $contactId = current($dupes);
-            }
-            if (!$contactId) {
-              continue;
-            }
-            //create participant
-            $params = array(
-              'contact_id' => $contactId,
-              'event_id' => $form->_eventId,
-              'status_id' => 1,
-              'role_id' => 1,
-              'registered_by_id' => $form->getVar('_participantId'),
-              'register_date' => date('YmdHis'),
-              'check_permissions' => false,
+    $formValues = $form->getVar('_params');
+    $extraString = '';
+    if ($formName == 'CRM_Event_Form_Participant') {
+      $extraString = '_-1';
+      $participantId = $form->getVar('_id');
+    }
+    else {
+      $participantId = $form->getVar('_participantId');
+    }
+    // create player participant
+    if (!empty($formValues['price_' . FOURSOME_FIELD_ID]) && CRM_Utils_Array::value(FOURSOME_FIELD_VALUE, $formValues['price_' . FOURSOME_FIELD_ID])) {
+      foreach ($contants as $key => $customFields) {
+        if (!empty($formValues['custom_' . $customFields['first_name'] . $extraString]) 
+          || !empty($formValues['custom_' . $customFields['last_name'] . $extraString]) 
+          || !empty($formValues['custom_' . $customFields['email'] . $extraString])) {
+          
+          // create/check contact
+          //check dupe
+          $params = array(
+            'last_name' => $formValues['custom_' . $customFields['last_name'] . $extraString],
+            'first_name' => $formValues['custom_' . $customFields['first_name'] . $extraString],
+            'email' => $formValues['custom_' . $customFields['email'] . $extraString],
+          );
+          $dedupeParams = CRM_Dedupe_Finder::formatParams($params, 'Individual');
+          $dupes = CRM_Dedupe_Finder::dupesByParams($dedupeParams, 'Individual', 'Unsupervised');
+          if (empty($dupes)) {
+            $params += array(
+              'contact_type' => 'Individual',
               'version' => 3,
             );
-            civicrm_api('Participant', 'create', $params);
+            $result = civicrm_api('Contact', 'create', $params);
+            $contactId = $result['id'];
           }
+          else {
+            $contactId = current($dupes);
+          }
+          if (!$contactId) {
+            continue;
+          }
+          //create participant
+          $params = array(
+            'contact_id' => $contactId,
+            'event_id' => $form->_eventId,
+            'status_id' => 1,
+            'role_id' => 1,
+            'registered_by_id' => $participantId,
+            'register_date' => date('YmdHis'),
+            'check_permissions' => false,
+            'version' => 3,
+         );
+          civicrm_api('Participant', 'create', $params);
         }
       }
     }
@@ -184,16 +192,29 @@ function mnc_getConstants() {
 }
 
 function mnc_civicrm_validate($formName, &$fields, &$files, &$form) {
-  if ($formName == 'CRM_Event_Form_Registration_Register'
-    && $form->_values['event']['event_type_id'] == EVENT_TYPE_ID) {
+  if (($formName == 'CRM_Event_Form_Registration_Register'
+    && $form->_values['event']['event_type_id'] == EVENT_TYPE_ID)
+    || ($formName == 'CRM_Event_Form_Participant'
+    && $form->getVar('_eventTypeId') == EVENT_TYPE_ID && $form->_action & CRM_Core_Action::ADD)) {
     
     if (CRM_Utils_Array::value('price_' . FOURSOME_FIELD_ID, $fields) == FOURSOME_FIELD_VALUE) {
       $errors = array();
+      $fieldKey = $extraString = '';
+      if ($formName == 'CRM_Event_Form_Participant') {
+        $extraString = '_-1';
+        $customFIelds = $form->_groupTree[1]['fields'];
+        $labelkey = 'label';
+      }
+      else {
+        $customFIelds = $form->_fields;
+        $labelkey = 'title';
+        $fieldKey = 'custom_';
+      }
       $contants = mnc_getConstants();
       foreach ($contants as $key => $customFields) {
         foreach ($customFields as $customFieldId) {
-          if (empty($fields['custom_' . $customFieldId])) {
-            $errors['custom_' . $customFieldId] = $form->_fields['custom_' . $customFieldId]['title'] . ts(' is required.');
+          if (empty($fields['custom_' . $customFieldId . $extraString])) {
+            $errors['custom_' . $customFieldId  . $extraString] = $customFIelds[$fieldKey . $customFieldId][$labelkey] . ts(' is required.');
           }
         }
       }
