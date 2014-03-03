@@ -78,14 +78,16 @@ function mnc_civicrm_managed(&$entities) {
 }
 
 function mnc_civicrm_buildForm($formName, &$form) {
+  if (substr($formName, 0, 27) == 'CRM_Event_Form_Registration') {
+    CRM_Core_Region::instance('page-body')->add(array(
+      'template' => 'CRM/Extra.tpl',
+    ));    
+  }
   if (substr($formName, 0, 27) == 'CRM_Event_Form_Registration' 
     && $form->_values['event']['event_type_id'] == EVENT_TYPE_ID) {
     if ($formName == 'CRM_Event_Form_Registration_Register') {
       $contants = mnc_getConstants();
       $form->assign('playerProfileID', PLAYER_PROFILE_ID);
-      CRM_Core_Region::instance('page-body')->add(array(
-        'template' => 'CRM/Extra.tpl',
-      ));
       $form->assign('foursome', array('field' => 'price_' . FOURSOME_FIELD_ID,
         'value' => FOURSOME_FIELD_VALUE));
     }
@@ -220,5 +222,13 @@ function mnc_civicrm_validate($formName, &$fields, &$files, &$form) {
       }
       return $errors;
     }
+  }
+}
+
+function mnc_civicrm_pageRun(&$page) {
+  if ($page->getVar('_name') == 'CRM_Event_Page_EventInfo') {
+    CRM_Core_Region::instance('page-body')->add(array(
+      'template' => 'CRM/Extra.tpl',
+    ));
   }
 }
