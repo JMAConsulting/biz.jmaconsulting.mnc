@@ -1,6 +1,7 @@
 {literal}
 <script type="text/javascript">
 cj(document).ready( function() {
+cj('.post-meta').hide();
 {/literal} {if $playerProfileID} {literal}
 var priceset = '{/literal} {$foursome.field} {literal}';
 var value = {/literal} {$foursome.value} {literal};
