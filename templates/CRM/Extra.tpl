@@ -1,6 +1,7 @@
 {literal}
 <script type="text/javascript">
 cj(document).ready( function() {
+{/literal} {if $playerProfileID} {/literal}
 var priceset = '{/literal} {$foursome.field} {literal}';
 var value = {/literal} {$foursome.value} {literal};
 var profileId = {/literal} {$playerProfileID} {literal};
@@ -23,7 +24,10 @@ var profileId = {/literal} {$playerProfileID} {literal};
       cj('.crm-profile-id-' + profileId).show();    
     }
   });
+{/literal}{else}{literal}
+  cj('.event_info-group div.location').removeClass('vcard');
+  cj('.event_address-section div.location').removeClass('vcard');
+{/literal}{/if}{literal}
 });
-
 </script>
 {/literal}
