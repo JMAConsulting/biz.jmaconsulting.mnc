@@ -78,7 +78,7 @@ function mnc_civicrm_managed(&$entities) {
 }
 
 function mnc_civicrm_buildForm($formName, &$form) {
-  if (substr($formName, 0, 27) == 'CRM_Event_Form_Registration') {
+  if (substr($formName, 0, 27) == 'CRM_Event_Form_Registration' || substr($formName, 0, 32) == 'CRM_Contribute_Form_Contribution') {
     CRM_Core_Region::instance('page-body')->add(array(
       'template' => 'CRM/Extra.tpl',
     ));    
