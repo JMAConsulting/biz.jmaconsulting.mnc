@@ -1,7 +1,7 @@
 {literal}
 <script type="text/javascript">
 cj(document).ready( function() {
-{/literal} {if $playerProfileID} {/literal}
+{/literal} {if $playerProfileID} {literal}
 var priceset = '{/literal} {$foursome.field} {literal}';
 var value = {/literal} {$foursome.value} {literal};
 var profileId = {/literal} {$playerProfileID} {literal};
