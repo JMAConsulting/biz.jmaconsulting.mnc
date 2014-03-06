@@ -2,7 +2,7 @@
 
 require_once 'mnc.civix.php';
 
-define('EVENT_TYPE_ID', 7);
+define('GOLF_EVENT_TYPE_ID', 7);
 define('PLAYER_PROFILE_ID', 13);
 define('FOURSOME_FIELD_ID', 5);
 define('FOURSOME_FIELD_VALUE', 11);
@@ -84,7 +84,7 @@ function mnc_civicrm_buildForm($formName, &$form) {
     ));    
   }
   if (substr($formName, 0, 27) == 'CRM_Event_Form_Registration' 
-    && $form->_values['event']['event_type_id'] == EVENT_TYPE_ID) {
+    && $form->_values['event']['event_type_id'] == GOLF_EVENT_TYPE_ID) {
     if ($formName == 'CRM_Event_Form_Registration_Register') {
       $contants = mnc_getConstants();
       $form->assign('playerProfileID', PLAYER_PROFILE_ID);
@@ -110,9 +110,9 @@ function mnc_civicrm_buildForm($formName, &$form) {
 
 function mnc_civicrm_postProcess($formName, &$form) {
   if (($formName == 'CRM_Event_Form_Registration_Confirm' 
-    && $form->_values['event']['event_type_id'] == EVENT_TYPE_ID)
+    && $form->_values['event']['event_type_id'] == GOLF_EVENT_TYPE_ID)
     || ($formName == 'CRM_Event_Form_Participant' 
-    && $form->getVar('_eventTypeId') == EVENT_TYPE_ID && $form->_action & CRM_Core_Action::ADD)) {
+    && $form->getVar('_eventTypeId') == GOLF_EVENT_TYPE_ID && $form->_action & CRM_Core_Action::ADD)) {
     $contants = mnc_getConstants();
     $formValues = $form->getVar('_params');
     $extraString = '';
@@ -195,9 +195,9 @@ function mnc_getConstants() {
 
 function mnc_civicrm_validate($formName, &$fields, &$files, &$form) {
   if (($formName == 'CRM_Event_Form_Registration_Register'
-    && $form->_values['event']['event_type_id'] == EVENT_TYPE_ID)
+    && $form->_values['event']['event_type_id'] == GOLF_EVENT_TYPE_ID)
     || ($formName == 'CRM_Event_Form_Participant'
-    && $form->getVar('_eventTypeId') == EVENT_TYPE_ID && $form->_action & CRM_Core_Action::ADD)) {
+    && $form->getVar('_eventTypeId') == GOLF_EVENT_TYPE_ID && $form->_action & CRM_Core_Action::ADD)) {
     
     if (CRM_Utils_Array::value('price_' . FOURSOME_FIELD_ID, $fields) == FOURSOME_FIELD_VALUE) {
       $errors = array();
