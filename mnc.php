@@ -193,6 +193,7 @@ function mnc_getConstants() {
   );
 }
 
+/** Joe commented this out as MNC doesn't want the player 2-4 fields to be mandatory
 function mnc_civicrm_validate($formName, &$fields, &$files, &$form) {
   if (($formName == 'CRM_Event_Form_Registration_Register'
     && $form->_values['event']['event_type_id'] == GOLF_EVENT_TYPE_ID)
@@ -224,6 +225,7 @@ function mnc_civicrm_validate($formName, &$fields, &$files, &$form) {
     }
   }
 }
+*/
 
 function mnc_civicrm_pageRun(&$page) {
   if ($page->getVar('_name') == 'CRM_Event_Page_EventInfo') {
