@@ -8,6 +8,10 @@ define('FOURSOME_FIELD_ID', 5);
 define('FOURSOME_FIELD_VALUE', 11);
 define('MSG_TEMPALTE_ID', 58);
 define('MSG_LUNCH_VALUE', 14);
+define('CANOPY_PRICE_NONE', 9);
+define('CANOPY_PRICE_TEXT', 7);
+define('CANOPY_TEXT_PRICE_FIELD', 15);
+define('CANOPY_TEXT', ' Donation in support of canopy purchase');
 
 
 /**
@@ -78,10 +82,18 @@ function mnc_civicrm_managed(&$entities) {
 }
 
 function mnc_civicrm_buildForm($formName, &$form) {
+  if ($formName == 'CRM_Event_Form_Registration_Register' 
+    && array_key_exists('price_' . CANOPY_PRICE_NONE, $form->_elementIndex)
+    && array_key_exists($form->_elementIndex['price_' . CANOPY_PRICE_NONE], $form->_elements)) {
+    $form->_elements[$form->_elementIndex['price_' . CANOPY_PRICE_NONE]]->_elements[2]->_text = CANOPY_TEXT;
+    $form->_elements[$form->_elementIndex['price_' . CANOPY_PRICE_TEXT]]->_label = '';
+    $form->assign('otherOption', array(CANOPY_PRICE_NONE, CANOPY_PRICE_TEXT));
+  }
+  
   if (substr($formName, 0, 27) == 'CRM_Event_Form_Registration' || substr($formName, 0, 32) == 'CRM_Contribute_Form_Contribution') {
     CRM_Core_Region::instance('page-body')->add(array(
       'template' => 'CRM/Extra.tpl',
-    ));    
+    ));
   }
   if (substr($formName, 0, 27) == 'CRM_Event_Form_Registration' 
     && $form->_values['event']['event_type_id'] == GOLF_EVENT_TYPE_ID) {
@@ -104,6 +116,16 @@ function mnc_civicrm_buildForm($formName, &$form) {
         $customPost = & CRM_Core_Smarty::singleton()->get_template_vars('primaryParticipantProfile');
         unset($customPost['CustomPost'][PLAYER_PROFILE_ID]);
       }
+    }
+  }
+}
+
+function mnc_civicrm_pre( $op, $objectName, $id, &$params ) {
+  if ($op == 'create' && $objectName == 'Contribution') {
+    $lineItem = CRM_Core_Smarty::singleton()->get_template_vars('lineItem');
+    if (array_key_exists(CANOPY_TEXT_PRICE_FIELD, $lineItem[0])) {
+      $params['skipLineItem'] = FALSE;
+      $params['line_item'][1] = $lineItem[0];
     }
   }
 }
@@ -195,34 +217,15 @@ function mnc_getConstants() {
 
 /** Joe commented this out as MNC doesn't want the player 2-4 fields to be mandatory
 function mnc_civicrm_validate($formName, &$fields, &$files, &$form) {
-  if (($formName == 'CRM_Event_Form_Registration_Register'
-    && $form->_values['event']['event_type_id'] == GOLF_EVENT_TYPE_ID)
-    || ($formName == 'CRM_Event_Form_Participant'
-    && $form->getVar('_eventTypeId') == GOLF_EVENT_TYPE_ID && $form->_action & CRM_Core_Action::ADD)) {
-    
-    if (CRM_Utils_Array::value('price_' . FOURSOME_FIELD_ID, $fields) == FOURSOME_FIELD_VALUE) {
-      $errors = array();
-      $fieldKey = $extraString = '';
-      if ($formName == 'CRM_Event_Form_Participant') {
-        $extraString = '_-1';
-        $customFIelds = $form->_groupTree[1]['fields'];
-        $labelkey = 'label';
-      }
-      else {
-        $customFIelds = $form->_fields;
-        $labelkey = 'title';
-        $fieldKey = 'custom_';
-      }
-      $contants = mnc_getConstants();
-      foreach ($contants as $key => $customFields) {
-        foreach ($customFields as $customFieldId) {
-          if (empty($fields['custom_' . $customFieldId . $extraString])) {
-            $errors['custom_' . $customFieldId  . $extraString] = $customFIelds[$fieldKey . $customFieldId][$labelkey] . ts(' is required.');
-          }
-        }
-      }
-      return $errors;
+  if ($formName == 'CRM_Event_Form_Registration_Register') {
+    $errors = array();
+    if (!array_key_exists('price_' . CANOPY_PRICE_NONE, $fields)) {
+      $errors['price_' . CANOPY_PRICE_NONE] = 'Please select atleast one option';
+    } 
+    elseif ($fields['price_' . CANOPY_PRICE_NONE] == 0 && empty($fields['price_' . CANOPY_PRICE_TEXT])) {
+      $errors['price_' . CANOPY_PRICE_TEXT] = CANOPY_TEXT . ts(' is required.');
     }
+    return $errors;
   }
 }
 */
