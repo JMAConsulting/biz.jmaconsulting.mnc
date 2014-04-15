@@ -237,3 +237,27 @@ function mnc_civicrm_pageRun(&$page) {
     ));
   }
 }
+
+function mnc_civicrm_alterMailParams(&$params, $context) {
+  if (CRM_Utils_Array::value('valueName', $params) == 'event_online_receipt') {
+    $smarty = CRM_Core_Smarty::singleton();
+    $additionalCount = $smarty->get_template_vars('additionalCount');
+    if (array_key_exists('tplParams', $params) && CRM_Utils_Array::value('additional_participants', $params['tplParams']) && !$additionalCount) {
+      $allEmails = array();
+      foreach($params['tplParams']['params'] as $value) {
+        if (is_array($value) && !empty($value['email-Primary']) && !$value['is_primary']) {
+          $allEmails[$value['email-Primary']] = $value['email-Primary'];
+        }
+      }
+      if (!empty($params['bcc'])) {
+        $params['bcc'] .= ' , ';
+      }
+      $params['bcc'] .= implode(' , ', $allEmails);
+      $smarty->assign('additionalCount', $params['tplParams']['additional_participants']);
+    }
+    elseif ($additionalCount) {
+      $params['toEmail'] = NULL;
+      $smarty->assign('additionalCount', $additionalCount--);
+    }
+  }
+}
