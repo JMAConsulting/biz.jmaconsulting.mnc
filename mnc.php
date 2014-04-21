@@ -82,6 +82,10 @@ function mnc_civicrm_managed(&$entities) {
 }
 
 function mnc_civicrm_buildForm($formName, &$form) {
+  if ('CRM_Contribute_Form_ContributionView' == $formName) {
+    $lineItem = CRM_Core_Smarty::singleton()->get_template_vars('lineItem');
+    showHideLineItems($lineItem, $form, 'crm-contribution-view-form-block');
+  }
   if ($formName == 'CRM_Event_Form_Registration_Register' 
     && array_key_exists('price_' . CANOPY_PRICE_NONE, $form->_elementIndex)
     && array_key_exists($form->_elementIndex['price_' . CANOPY_PRICE_NONE], $form->_elements)) {
@@ -116,6 +120,26 @@ function mnc_civicrm_buildForm($formName, &$form) {
         $customPost = & CRM_Core_Smarty::singleton()->get_template_vars('primaryParticipantProfile');
         unset($customPost['CustomPost'][PLAYER_PROFILE_ID]);
       }
+    }
+  }
+  if (in_array($formName, array('CRM_Event_Form_Registration_Confirm', 'CRM_Event_Form_Registration_ThankYou'))) {
+    showHideLineItems($form->_lineItem, $form, 'event_fees-group');
+  }
+}
+
+function showHideLineItems($lineItem, $form, $hideItemClass) {
+  if ($lineItem && count($lineItem) == 1) {
+    $lineItem = current($lineItem);
+    if (is_array($lineItem)) {
+     $lineItem = current($lineItem);
+    }
+    if ($lineItem['price_field_value_id'] == CANOPY_TEXT_PRICE_FIELD) {
+      if (get_class($form) == 'CRM_Contribute_Form_ContributionView') {
+        CRM_Core_Region::instance('page-body')->add(array(
+          'template' => 'CRM/Extra.tpl',
+        ));
+      }
+      $form->assign('hideItemClass', $hideItemClass);
     }
   }
 }
