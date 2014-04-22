@@ -147,7 +147,7 @@ function showHideLineItems($lineItem, $form, $hideItemClass) {
 function mnc_civicrm_pre( $op, $objectName, $id, &$params ) {
   if ($op == 'create' && $objectName == 'Contribution') {
     $lineItem = CRM_Core_Smarty::singleton()->get_template_vars('lineItem');
-    if (array_key_exists(CANOPY_TEXT_PRICE_FIELD, $lineItem[0])) {
+    if (is_array($lineItem) && array_key_exists(CANOPY_TEXT_PRICE_FIELD, $lineItem[0])) {
       $params['skipLineItem'] = FALSE;
       $params['line_item'][1] = $lineItem[0];
     }
